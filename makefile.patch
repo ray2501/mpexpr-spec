@@ -1,0 +1,70 @@
+--- unix/Makefile.in.orig	2017-09-07 22:28:40.838877767 +0800
++++ unix/Makefile.in	2017-09-07 23:10:51.296660470 +0800
+@@ -29,10 +29,12 @@
+ #
+ 
+ BIN_DIR      = $(exec_prefix)/bin
+-LIB_DIR      = $(exec_prefix)/lib
+-MAN_DIR      = $(prefix)/man
++LIB_DIR      = $(exec_prefix)/lib64
++MAN_DIR      = $(prefix)/share/man
+ MANN_DIR     = $(MAN_DIR)/mann
+ 
++DESTDIR	     =
++
+ #------------------------------------------------------------------------------
+ # define where Tcl include and libraries are located
+ # Mpexpr assumes that Tcl, Tk (and possibly Extended Tcl) are installed
+@@ -406,35 +408,37 @@
+ 
+ install-shared:	$(LIB_SH_MPEXPR)   
+ 	@echo installing $(LIB_SH_MPEXPR)
+-	$(INSTALL_PROGRAM) $(LIB_SH_MPEXPR)  $(LIB_DIR)/$(LIB_SH_MPEXPR)
++	-mkdir -p $(DESTDIR)/$(LIB_DIR)/tcl/Mpexpr$(MPEXPR_LIBVER)
++	$(INSTALL_PROGRAM) $(LIB_SH_MPEXPR)  $(DESTDIR)/$(LIB_DIR)/tcl/Mpexpr$(MPEXPR_LIBVER)/$(LIB_SH_MPEXPR)
+ 	@echo installing pkgIndex.tcl
+-	-mkdir $(LIB_DIR)/Mpexpr$(MPEXPR_LIBVER)
+-	$(INSTALL_PROGRAM) pkgIndex.tcl  $(LIB_DIR)/Mpexpr$(MPEXPR_LIBVER)/pkgIndex.tcl
++	$(INSTALL_PROGRAM) pkgIndex.tcl  $(DESTDIR)/$(LIB_DIR)/tcl/Mpexpr$(MPEXPR_LIBVER)/pkgIndex.tcl
+ 
+ install-static:	@PROGS@   $(LIB_MPEXPR)
+ 	@for f in $(T_EXEC) $(W_EXEC) ; do  \
+ 	  if test -x $$f ; then  \
+ 	    echo installing $$f; \
+-	    $(INSTALL_PROGRAM) $$f  $(BIN_DIR)/$$f ; \
++	    $(INSTALL_PROGRAM) $$f  $(DESTDIR)/$(BIN_DIR)/$$f ; \
+ 	  fi ; \
+ 	  done
+ 	@echo installing $(LIB_MPEXPR)
+-	$(INSTALL_DATA)    $(LIB_MPEXPR) $(LIB_DIR)/$(LIB_MPEXPR)
++	$(INSTALL_DATA)    $(LIB_MPEXPR) $(DESTDIR)/$(LIB_DIR)/tcl/$(LIB_MPEXPR)
+ 
+ install-man:	$(MAN_PAGE)
+ 	@echo installing $(MAN_PAGE)
+-	$(INSTALL_DATA)    $(MAN_PAGE)  $(MANN_DIR)/$(MAN_PAGE)
++	-mkdir -p $(DESTDIR)/$(MANN_DIR)/$(MAN_PAGE)
++	$(INSTALL_DATA)    $(MAN_PAGE)  $(DESTDIR)/$(MANN_DIR)/$(MAN_PAGE)
+ 
+ install-tools:
++	-mkdir -p $(DESTDIR)/$(BIN_DIR)
+ 	for file in mpksc ; do \
+ 	  echo "installing $$file" ; \
+ 	  if test "@INSTALL_TARGET@" = "install-shared" ; then \
+-	        echo '#!$(BIN_DIR)/wish$(TK_VERSION)' >$(BIN_DIR)/$$file ; \
++	        echo '#!$(BIN_DIR)/wish$(TK_VERSION)' >$(DESTDIR)/$(BIN_DIR)/$$file ; \
+ 	  else \
+-	        echo '#!$(BIN_DIR)/$(W_EXEC)' >$(BIN_DIR)/$$file ; \
++	        echo '#!$(BIN_DIR)/$(W_EXEC)' >$(DESTDIR)/$(BIN_DIR)/$$file ; \
+ 	  fi ; \
+-	  cat ../samples/$$file >>$(BIN_DIR)/$$file ; \
+-	  chmod 755 $(BIN_DIR)/$$file ; \
++	  cat ../samples/$$file >>$(DESTDIR)/$(BIN_DIR)/$$file ; \
++	  chmod 755 $(DESTDIR)/$(BIN_DIR)/$$file ; \
+ 	done
+ 
+ 
+--- unix/pkgIndex.tcl.in.orig	2017-09-07 23:14:41.180792153 +0800
++++ unix/pkgIndex.tcl.in	2017-09-07 23:16:23.340856590 +0800
+@@ -1 +1 @@
+-package ifneeded Mpexpr @MPEXPR_VERSION@ "load [file join $dir .. libMpexpr@MPEXPR_LIBVER@[info sharedlibextension]]"
++package ifneeded Mpexpr @MPEXPR_VERSION@ "load [file join $dir libMpexpr@MPEXPR_LIBVER@[info sharedlibextension]]"
